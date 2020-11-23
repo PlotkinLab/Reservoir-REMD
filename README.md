@@ -9,7 +9,7 @@ http://www.gromacs.org/Documentation_of_outdated_versions/Installation_Instructi
 
 Once the flag, -reservoir (checkpoint files), is supplied at the end of the mdrun command, the Reservoir-REMD is toggled. The reservoir checkpoint files should be placed in the highest temperature replica folder. An example command is as follow
 
-`mpirun -n 5 mdrun -s md.tpr -o md.trr -c md.gro -g md.log -e md.edr -v -multidir sim{1..3} -replex 500 -reservoir element{1..10}.cpt`
+`mpirun -n 5 mdrun -deffnm md -v -multidir sim{1..3} -replex 500 -reservoir element{1..10}.cpt`
 
 where element1.cpt, element2.cpt, ..., element10000.cpt are the reservoir of the REMD simulation, and should be placed at the sim3 folder. For detail, see the example folder.
 
@@ -24,6 +24,12 @@ There are many ways to generate checkpoint files. The most straight forward meth
 `tpbconv -s md.tpr -f md.trr -time 480 -o element9.tpr -nsteps 1`
 
 `mdrun -s element9.tpr -deffnm element9`
+
+**How to continue a reservoir REMD simulation**
+
+The continuation can be achieved by supplying a -cpi flag. An example command line is as follow.
+
+`mpirun -n 5 mdrun -deffnm md -v -multidir sim{1..3} -replex 500 -reservoir element{1..10}.cpt -cpi state.cpt`
 
 ## Reference
 
