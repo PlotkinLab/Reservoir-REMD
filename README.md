@@ -1,5 +1,6 @@
 # GROMACS 4.6.7 patched with Reservoir REMD.
 
+
 **Installation**
 
 The installation is the same as the official GROMACS 4.6.7. The installation guide can be found at
