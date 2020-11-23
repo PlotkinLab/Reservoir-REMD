@@ -15,9 +15,10 @@ where element1.cpt, element2.cpt, ..., element10000.cpt are the reservoir of the
 
 **How to properly assign CPUs?**
 
-The reservoir replica always takes 1 core only, so the number of cores would be (number of non-reservoir repicais)\*N +1 where N is the number of CPUs that is accepted by the domain decompisition scheme of the system. In the previous example submission command, sim1 and sim2 take 2 cores, and sim3 which is the reservoir replica takes 1 core. As a result the command took 5 cores in total.
+The number of cores to run Reservoir REMD is (number of non-reservoir repicais)\*N +1 where N is the number of CPUs that is accepted by the domain decompisition scheme of the system and the extra one core is assigned to the reservoir replica. In the previous example submission command, sim1 and sim2 take 2 cores, and sim3 which is the reservoir replica takes 1 core. As a result the command took 5 cores in total.
 
 **How to generate reservoir checkpoint files?**
+
 There are many ways to generate checkpoints fies. The most straight forward method is to save checkpoint files with fixed interval while the simulation is running. The other method is to extract checkpoint files from the trr file. The command below can generate the tpr file of a specific time (i.e. 480ps), and run 1 MD step from that tpr file to generate a checkpoint file (i.e. element9.cpt)
 
 `tpbconv -s md.tpr -f md.trr -time 480 -o element9.tpr -nsteps 1`
@@ -26,6 +27,6 @@ There are many ways to generate checkpoints fies. The most straight forward meth
 
 ## Reference
 The development of Reservoir-REMD GROMACS is funded by academic research grants. 
-To help us fund development, we humbly ask that you cite the GROMACS papers:
+To help us fund development, we humbly ask that you cite the following papers:
 
 Shawn Hsueh, Steven Plotkin "Accelarate the ensemble generation of cyclic peptide by Reservoir REMD" (in preparation)
