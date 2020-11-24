@@ -1,0 +1,22 @@
+#!/bin/bash
+#PBS -S /bin/bash
+##PBS -l procs=421
+#PBS -l nodes=3:ppn=12
+#PBS -l pmem=1gb
+#PBS -l walltime=12:00:00
+#PBS -N stage2
+#PBS -M hsueh@phas.ubc.ca
+#PBS -m bea
+
+module load gromacs/4.6.2 #to load in mpirun module
+source ~/gromacs-4.6.7-RREMD/bin/GMXRC
+export GMXLIB=/global/software/gromacs/4.6.2/share/gromacs/top:/home/cttm4a1
+cd $PBS_O_WORKDIR
+append="_mpi"
+	(for dir in equil{1..25}; do cd $dir; grompp$append -f nvt.mdp -c prot-solv-ion-em.gro -p topol.top -o nvt.tpr; cd ..; done)
+        mpirun -n 25 mdrun_mpi -s nvt.tpr -o nvt.trr -c prot-solv-ion-em-nvt.gro -g nvt.log -e nvt.edr -v -multidir equil{1..25}
+        # Equilibrate solvent to set pressure
+                   
+	(for dir in equil{1..25}; do cd $dir; grompp$append -f npt.mdp -c prot-solv-ion-em-nvt.gro -t state.cpt -p topol.top -o npt.tpr; cd ..; done)
+        mpirun -n 25 mdrun_mpi -s npt.tpr -o npt.trr -c prot-solv-ion-em-nvt-npt.gro -g npt.log -e npt.edr -v -multidir equil{1..25}
+        # Equilibrate entire system

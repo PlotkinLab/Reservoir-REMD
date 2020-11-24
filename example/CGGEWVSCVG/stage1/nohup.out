@@ -1,0 +1,7 @@
+./stage1_local.sh: 1: ./stage1_local.sh: source: not found
+./stage1_local.sh: 6: ./stage1_local.sh: editconf_mpi: not found
+./stage1_local.sh: 7: ./stage1_local.sh: genbox_mpi: not found
+./stage1_local.sh: 9: ./stage1_local.sh: grompp_mpi: not found
+./stage1_local.sh: 10: ./stage1_local.sh: genion_mpi: not found
+./stage1_local.sh: 13: ./stage1_local.sh: grompp_mpi: not found
+./stage1_local.sh: 14: ./stage1_local.sh: mdrun_mpi: not found

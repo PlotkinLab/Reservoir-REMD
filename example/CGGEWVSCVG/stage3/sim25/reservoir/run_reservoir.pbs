@@ -1,0 +1,20 @@
+#!/bin/bash
+#PBS -S /bin/bash
+#PBS -l nodes=3:ppn=12
+#PBS -l walltime=120:00:00
+#PBS -N reservoir
+#PBS -M hsueh@phas.ubc.ca
+#PBS -m bea
+
+append="_mpi"
+
+module load gromacs/4.6.2 #to load in mpirun module
+source ~/gromacs-4.6.7-RREMD/bin/GMXRC
+export GMXLIB=/global/software/gromacs/4.6.2/share/gromacs/top:/home/cttm4a1
+#export GMX_MAXBACKUP=-1
+cd $PBS_O_WORKDIR
+
+
+grompp$append -f md.mdp -c prot-solv-ion-em-nvt-npt.gro -t state.cpt -p topol.top -o md.tpr
+mpirun mdrun$append -s md.tpr -o md.trr -c prot-solv-ion-em-nvt-npt-md.gro -g md.log -e md.edr -npme 9
+
