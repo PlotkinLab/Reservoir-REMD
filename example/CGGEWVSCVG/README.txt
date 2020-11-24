@@ -1,5 +1,5 @@
 1. Stage1
-Put the input structure, topology file, and positional restraint files in the stage1 folder, which have to be created yourself. Copy the stage1_drake.sh script to the stage1 folder and run the script locally on drake. This step is to solvate, ionize, and energy minimize the system. If the system is too big to run locally, use stage1.pbs (or stage1.sh) to submit on HPC.
+Put the input structure, topology file, and positional restraint files in the stage1 folder, which have to be created yourself. Copy the stage1_drake.sh script to the stage1 folder and run the script locally (on drake). This step is to solvate, ionize, and energy minimize the system. If the system is too big to run locally, use stage1.pbs (or stage1.sh) to submit on HPC (the code may have to be modified to fit custom HPC).
 
 2. Determine the temperatures of replicas
 Check the number of the solvent atoms and protein atoms in your system (you can check it from the topology file), and generate the temperatures of replicas from the online server (http://folding.bmc.uu.se/remd/). The generated temperatures should replace the T_arr variable in pre_stage2.sh and pre_stage3.sh.
