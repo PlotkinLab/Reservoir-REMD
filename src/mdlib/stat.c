@@ -684,7 +684,7 @@ void write_traj(FILE *fplog, t_commrec *cr,
         {
             write_checkpoint(of->fn_cpt, of->bKeepAndNumCPT,
                              fplog, cr, of->eIntegrator, of->simulation_part,
-                             of->bExpanded, of->elamstats, step, t, state_global);
+                             of->bExpanded, of->elamstats, step, t, state_global);//qwerty
         }
 
         if (mdof_flags & (MDOF_X | MDOF_V | MDOF_F))

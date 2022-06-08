@@ -442,6 +442,9 @@ int cmain(int argc, char *argv[])
     gmx_bool      bIonize       = FALSE;
     gmx_bool      bConfout      = TRUE;
     gmx_bool      bReproducible = FALSE;
+    //NEW
+    gmx_bool      bAdaptiveReservoir = FALSE;
+    //ENDNEW
 
     int           npme          = -1;
     int           nmultisim     = 0;
@@ -571,7 +574,11 @@ int cmain(int argc, char *argv[])
         { "-resetstep", FALSE, etINT, {&resetstep},
           "HIDDENReset cycle counters after these many time steps" },
         { "-resethway", FALSE, etBOOL, {&bResetCountersHalfWay},
-          "HIDDENReset the cycle counters after half the number of steps or halfway [TT]-maxh[tt]" }
+          "HIDDENReset the cycle counters after half the number of steps or halfway [TT]-maxh[tt]" },
+	//NEW
+        { "-adaptive", FALSE, etBOOL, {&bAdaptiveReservoir},
+          "Toggle adaptive reservoir" }
+	//ENDNEW
     };
     gmx_edsam_t   ed;
     unsigned long Flags, PCA_Flags;
@@ -742,6 +749,9 @@ int cmain(int argc, char *argv[])
     Flags = Flags | (bKeepAndNumCPT ? MD_KEEPANDNUMCPT : 0);
     Flags = Flags | (sim_part > 1    ? MD_STARTFROMCPT : 0);
     Flags = Flags | (bResetCountersHalfWay ? MD_RESETCOUNTERSHALFWAY : 0);
+    //NEW
+    Flags = Flags | (bAdaptiveReservoir ? MD_ADAPTIVE_RESERVOIR : 0);
+    //ENDNEW
 
 
     /* We postpone opening the log file if we are appending, so we can

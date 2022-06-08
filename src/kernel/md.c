@@ -236,6 +236,12 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
     double               cycles_pmes;
     gmx_bool             bPMETuneTry = FALSE, bPMETuneRunning = FALSE;
 
+    //NEW
+    char**  reservoir;
+    int nreservoir;
+    int index_reservoir;
+    //ENDNEW
+
 #ifdef GMX_FAHCORE
     /* Temporary addition for FAHCORE checkpointing */
     int chkpt_ret;
@@ -826,13 +832,66 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
         /* check how many steps are left in other sims */
         multisim_nsteps = get_multisim_nsteps(cr, ir->nsteps);
     }
-
+    
+    //NEW
+    nreservoir = opt2fns(&reservoir, "-reservoir", nfile, fnm);
+    //ENDNEW
 
     /* and stop now if we should */
     bLastStep = (bRerunMD || (ir->nsteps >= 0 && step_rel > ir->nsteps) ||
                  ((multisim_nsteps >= 0) && (step_rel >= multisim_nsteps )));
     while (!bLastStep || (bRerunMD && bNotLastFrame))//qwerty: md loop shart here
     {
+	//NEW
+        /*
+        read a random checkpoint file from reservoir every time exchange is attempted.
+        Also set bFirstStep=TRUE to clean the constraint history
+        */
+        if (opt2bSet("-reservoir", nfile, fnm) && (cr->ms->sim == cr->ms->nsim-1) && !bLastStep)
+        {
+            ivec	ddxyz = {0, 0, 0};
+            int step_buf, step_rel_buf;
+            gmx_bool    bReadRNG, bReadEkin;
+            t_inputrec *ir_buf;
+            snew(ir_buf, 1);
+	    
+            index_reservoir = rand() % nreservoir;//element index start from 1
+
+            //fprintf(stdout, "Checkpoint file is %s.\n", reservoir[index_reservoir]);
+
+	    //write_checkpoint(...)
+
+            step_buf = step;
+            step_rel_buf = step_rel;
+            *ir_buf = *ir;
+            //ir_buf->nsteps = ir->nsteps;
+            //ir_buf->init_step = ir->init_step;
+            //ir_buf->simulation_part = ir->simulation_part;
+            load_checkpoint(reservoir[index_reservoir], &fplog,//qwerty
+                            cr, Flags & MD_PARTDEC, ddxyz,
+                            ir, state, &bReadRNG, &bReadEkin,
+                            (Flags & MD_APPENDFILES),
+                            (Flags & MD_APPENDFILESSET));
+            //read_state(reservoir[index_reservoir], state, &bReadRNG);
+            step = step_buf;
+            step_rel = step_rel_buf;
+            ir->nsteps = ir_buf->nsteps;
+            ir->init_step = ir_buf->init_step;
+            ir->simulation_part = ir_buf->simulation_part;
+
+            //init_global_signals(&gs, cr, ir, repl_ex_nst);
+            for (i = 0; i < eglsNR; i++)
+            {
+                gs.set[i] = 0;
+            }
+
+            bFirstStep = TRUE;
+            bStateFromCP = TRUE;
+            bStateFromTPX    = !bStateFromCP;
+            bInitStep        = bFirstStep && (bStateFromTPX || bVV);
+            bStartingFromCpt = (Flags & MD_STARTFROMCPT) && bInitStep;
+        }
+	//ENDNEW
 
         wallcycle_start(wcycle, ewcSTEP);
 
@@ -2098,22 +2157,39 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 
         //NEW
         /*
-        skip MD integration for reservoir run(but allow 1 single integration to calculate Epot),
-        and keep essential communication between replicas(exchange global signal every nstglobalcomm steps)
+        skip MD integration for reservoir run (but allow 1 single integration to calculate Epot),
+        and keep essential communication between replicas (exchange global signal every nstglobalcomm steps)
         */
         if (opt2bSet("-reservoir", nfile, fnm) && MULTISIM(cr))
         {
             if (cr->ms->sim == cr->ms->nsim-1)
             {
-                while(step_rel > 0 && !do_per_step(step, repl_ex_nst))
+                while(step_rel > 0 && !do_per_step(step, repl_ex_nst) || bLastStep)
                 {
-                    if (bLastStep) break;
+
+       		     /* check whether we should stop because another simulation has
+       		        stopped. */
+       		    if ( (multisim_nsteps >= 0) &&  (step_rel >= multisim_nsteps)  &&
+       		         (multisim_nsteps != ir->nsteps) )
+       		    {
+       		        if (bNS) //Stop at a time that's a multiple of nstlist
+       		        {
+       		            if (MASTER(cr))
+       		            {
+       		                fprintf(stderr,
+       		                        "Stopping simulation %d because another one has finished\n",
+       		                        cr->ms->sim);
+       		            }
+       		            bLastStep         = TRUE;
+       		            gs.sig[eglsCHKPT] = 1;
+       		        }
+       		    }
 
                     bFirstStep = FALSE;
                     bExchanged = FALSE;
                     bNStList = (ir->nstlist > 0  && step % ir->nstlist == 0);//bNStList is True every nstlist step
                     bNS = (bFirstStep || bExchanged || bNStList || bDoFEP ||
-                        (ir->nstlist == -1 && nlh.nabnsb > 0));//bNS is True id bNStList is True
+                        (ir->nstlist == -1 && nlh.nabnsb > 0));//bNS is True if bNStList is True
                     bCPT = (((gs.set[eglsCHKPT] && (bNS || ir->nstlist == 0)) ||
                         (bLastStep && (Flags & MD_CONFOUT))) &&
                         step > ir->init_step && !bRerunMD);//bCPT is True if bNS is True
@@ -2124,6 +2200,7 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                            step, t, state, state_global, f, f_global, &n_xtc, &x_xtc);//save checkpoint
                         gs.set[eglsCHKPT] = 0;
                         nchkpt++;
+                    	if (bLastStep) break;
                     }
 
                     //bInterSimGS = (step_rel % gs.nstms == 0) && (multisim_nsteps < 0 || (step_rel < multisim_nsteps));
@@ -2207,53 +2284,16 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
         bStartingFromCpt = FALSE;
 
         //NEW
-        /*
-        read a random checkpoint file from reservoir every time exchange is attempted.
-        Also set bFirstStep=TRUE to clean the constraint history
-        */
-        if (opt2bSet("-reservoir", nfile, fnm) && (cr->ms->sim == cr->ms->nsim-1) && !bLastStep)
+	/*
+	Implementation of adaptive reservoir. Save the state in the reservoir if bExchanged is true.
+	*/
+        if (opt2bSet("-reservoir", nfile, fnm) && (Flags & MD_ADAPTIVE_RESERVOIR) && (cr->ms->sim == cr->ms->nsim-1) && !bLastStep && bExchanged)
         {
-            ivec        ddxyz = {0, 0, 0};
-            gmx_bool    bReadRNG, bReadEkin;
-            char**  reservoir;
-            int nreservoir = opt2fns(&reservoir, "-reservoir", nfile, fnm);
-            int index_reservoir = rand() % nreservoir;//element index start from 1
-            int step_buf, step_rel_buf;
-            t_inputrec *ir_buf;
-            snew(ir_buf, 1);
-
-            //fprintf(stdout, "Checkpoint file is %s.\n", reservoir[index_reservoir]);
-
-            step_buf = step;
-            step_rel_buf = step_rel;
-            *ir_buf = *ir;
-            //ir_buf->nsteps = ir->nsteps;
-            //ir_buf->init_step = ir->init_step;
-            //ir_buf->simulation_part = ir->simulation_part;
-            load_checkpoint(reservoir[index_reservoir], &fplog,//qwerty
-                            cr, Flags & MD_PARTDEC, ddxyz,
-                            ir, state, &bReadRNG, &bReadEkin,
-                            (Flags & MD_APPENDFILES),
-                            (Flags & MD_APPENDFILESSET));
-            //read_state(reservoir[index_reservoir], state, &bReadRNG);
-            step = step_buf;
-            step_rel = step_rel_buf;
-            ir->nsteps = ir_buf->nsteps;
-            ir->init_step = ir_buf->init_step;
-            ir->simulation_part = ir_buf->simulation_part;
-
-            //init_global_signals(&gs, cr, ir, repl_ex_nst);
-            for (i = 0; i < eglsNR; i++)
-            {
-                gs.set[i] = 0;
-            }
-
-            bFirstStep = TRUE;
-            bStateFromCP = TRUE;
-            bStateFromTPX    = !bStateFromCP;
-            bInitStep        = bFirstStep && (bStateFromTPX || bVV);
-            bStartingFromCpt = (Flags & MD_STARTFROMCPT) && bInitStep;
-        }
+		//mdof_flags |= MDOF_CPT; //activate write_checkpoint in write_traj
+		//write_traj(fplog, cr, outf, mdof_flags, top_global, step, t, state, state_global, f, f_global, &n_xtc, &x_xtc);//save checkpoint
+		//write_checkpoint(outf->fn_cpt, outf->bKeepAndNumCPT, fplog, cr, outf->eIntegrator, outf->simulation_part, outf->bExpanded, outf->elamstats, step, t, state_global);
+		write_checkpoint(reservoir[index_reservoir], outf->bKeepAndNumCPT, fplog, cr, outf->eIntegrator, outf->simulation_part, outf->bExpanded, outf->elamstats, step, t, state_global);
+	}
         //ENDNEW
 
         /* #######  SET VARIABLES FOR NEXT ITERATION IF THEY STILL NEED IT ###### */

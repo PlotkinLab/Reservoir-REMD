@@ -1,0 +1,12 @@
+libdir=/storage5/shawn/RREMD/gromacs-4.6.7.4/lib
+includedir=/storage5/shawn/RREMD/gromacs-4.6.7.4/include
+
+Name: libgmx_mpi
+Description: Gromacs default lib
+URL: http://www.gromacs.org
+Version: 4.6.7
+Requires:
+Libs.private: -lpthread -ldl -fopenmp
+Libs: -L${libdir} -lgmx_mpi -lm
+Cflags: -I${includedir}  -DGMX_SOFTWARE_INVSQRT -DGMX_LIB_MPI -fopenmp
+

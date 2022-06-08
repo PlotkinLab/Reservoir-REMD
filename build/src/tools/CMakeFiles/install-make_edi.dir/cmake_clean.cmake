@@ -1,0 +1,8 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/install-make_edi"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang )
+  include(CMakeFiles/install-make_edi.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()
