@@ -5,13 +5,13 @@
 The installation is the same as the official GROMACS 4.6.7. The installation guide can be found at
 http://www.gromacs.org/Documentation_of_outdated_versions/Installation_Instructions_4.6
 
-**How to use Reservoir-REMD?**
+**How to run Reservoir-REMD?**
 
 Once the flag, -reservoir (checkpoint files), is supplied at the end of the mdrun command, the Reservoir-REMD is toggled. The reservoir checkpoint files should be placed in the highest temperature replica folder. An example command is as follow
 
 `mpirun -n 5 mdrun -deffnm md -v -multidir sim{1..3} -replex 500 -reservoir element{1..10}.cpt`
 
-where element1.cpt, element2.cpt, ..., element10000.cpt are the reservoir for the Res-REMD simulation, and should be placed at the highest-temperature replica folder (i.e. sim3). For detail, see the example in example folder.
+where element1.cpt, element2.cpt, ..., element10000.cpt are the reservoir for the Res-REMD simulation, and should be placed at the highest-temperature replica folder (i.e. sim3). For detail, see examples in example folder.
 
 **How to correctly assign CPUs?**
 
