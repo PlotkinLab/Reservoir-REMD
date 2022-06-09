@@ -4,6 +4,7 @@
 
 The installation is the same as the official GROMACS 4.6.7. The installation guide can be found at
 http://www.gromacs.org/Documentation_of_outdated_versions/Installation_Instructions_4.6
+or https://manual.gromacs.org/
 
 **How to run Reservoir-REMD?**
 
