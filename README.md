@@ -3,8 +3,18 @@
 **Installation**
 
 The installation is the same as the official GROMACS 4.6.7. The installation guide can be found at
-http://www.gromacs.org/Documentation_of_outdated_versions/Installation_Instructions_4.6
-or https://manual.gromacs.org/
+http://www.gromacs.org/Documentation_of_outdated_versions/Installation_Instructions_4.6 or https://manual.gromacs.org/
+
+A recommended lists of command to execute is the following:
+```
+git clone https://github.com/PlotkinLab/Reservoir-REMD # download this repo
+cd Reservoir-REMD
+mkdir build
+cd build 
+cmake .. -DGMX_BUILD_OWN_FFTW=ON -DGMX_MPI=on -DCMAKE_INSTALL_PREFIX=/usr/local/gromacs-RREMD
+make
+sudo make install
+```
 
 **How to run Reservoir-REMD?**
 
