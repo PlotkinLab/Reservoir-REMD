@@ -47,4 +47,7 @@ The continuation can be achieved by supplying a -cpi flag. An example command is
 
 The development of Reservoir-REMD GROMACS is funded by academic research grants. To help us fund development, we humbly ask that you cite the following papers:
 
-Shawn Hsueh, Steven Plotkin "Accelerated ensemble generation for cyclic peptide using Reservoir-REMD" (to be submitted)
+Shawn C.C. Hsueh, Adekunle Aina, and Steven S. Plotkin
+"Ensemble Generation for Linear and Cyclic Peptides Using a Reservoir Replica Exchange Molecular Dynamics Implementation in GROMACS"
+The Journal of Physical Chemistry B 2022 126 (49), 10384-10399
+DOI: 10.1021/acs.jpcb.2c05470
